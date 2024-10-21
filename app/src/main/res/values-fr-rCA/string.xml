@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Laboratoires Android</string>
+    <string name="hello_world">Bonjour le monde</string>
+    <string name="button_text">Je suis un bouton!</string>
+    <string name="thank_you">Merci</string>
+    <string name="do_not_call_me_that">Ne m\'appelez pas ça</string>
+    <string name="welcome">Bienvenue</string>
+    <string name="enter_your_name">Entrez votre nom</string>
+    <string name="hint_name">Veuillez entrer votre nom</string>
+    <string name="next">Suivant</string>
+    <string name="type_here">Tapez ici</string>
+    <string name="add">Ajouter</string>
+    <string name="urgent">Urgent</string>
+</resources>
