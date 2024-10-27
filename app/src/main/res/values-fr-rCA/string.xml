@@ -12,4 +12,6 @@
     <string name="type_here">Tapez ici</string>
     <string name="add">Ajouter</string>
     <string name="urgent">Urgent</string>
+    <string name="title_activity_main">MainActivity</string>
+    <string name="cat_description">A cute cat</string>
 </resources>
