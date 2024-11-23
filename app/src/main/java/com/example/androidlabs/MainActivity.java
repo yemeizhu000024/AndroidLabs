@@ -1,58 +1,96 @@
 package com.example.androidlabs;
 
+import android.content.Intent;
 import android.os.Bundle;
-import android.widget.Button;
-import android.widget.EditText;
+import android.util.Log;
 import android.widget.ListView;
-import android.widget.Toast;
-import androidx.appcompat.app.AlertDialog;
+
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.SwitchCompat;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class MainActivity extends AppCompatActivity {
 
-    private final ArrayList<ToDoItem> toDoList = new ArrayList<>();
-    private ToDoAdapter adapter;
+    private static final String STAR_WARS_API_URL = "https://swapi.dev/api/people/?format=json";
+    private static final String TAG = "MainActivity";
+    private final ExecutorService executorService = Executors.newSingleThreadExecutor();
+
+    private ListView listView;
+    private final ArrayList<String> names = new ArrayList<>();
+    private final ArrayList<String> details = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        ListView listView = findViewById(R.id.todo_list);
-        EditText editText = findViewById(R.id.todo_input);
-        SwitchCompat urgentSwitch = findViewById(R.id.urgent_switch);
-        Button addButton = findViewById(R.id.add_button);
+        listView = findViewById(R.id.listView);
 
-        adapter = new ToDoAdapter(toDoList, this);
-        listView.setAdapter(adapter);
+        fetchStarWarsData();
 
-        // Add button click listener
-        addButton.setOnClickListener(v -> {
-            String text = editText.getText().toString();
-            if (!text.isEmpty()) {
-                boolean isUrgent = urgentSwitch.isChecked();
-                toDoList.add(new ToDoItem(text, isUrgent));
-                editText.setText("");  // Clear EditText
-                adapter.notifyDataSetChanged();  // Refresh ListView
+        listView.setOnItemClickListener((parent, view, position, id) -> {
+            Bundle bundle = new Bundle();
+            bundle.putString("details", details.get(position));
+
+            if (findViewById(R.id.frameLayout) == null) {
+                Intent intent = new Intent(MainActivity.this, EmptyActivity.class);
+                intent.putExtras(bundle);
+                startActivity(intent);
             } else {
-                Toast.makeText(this, "Please type something!", Toast.LENGTH_SHORT).show();
+                DetailsFragment fragment = new DetailsFragment();
+                fragment.setArguments(bundle);
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.frameLayout, fragment)
+                        .commit();
             }
         });
+    }
 
-        // Set long click listener to delete item
-        listView.setOnItemLongClickListener((parent, view, position, id) -> {
-            new AlertDialog.Builder(this)
-                    .setTitle("Do you want to delete this?")
-                    .setMessage("The selected row is: " + position)
-                    .setPositiveButton("Yes", (dialog, which) -> {
-                        toDoList.remove(position);
-                        adapter.notifyDataSetChanged();
-                    })
-                    .setNegativeButton("No", null)
-                    .show();
-            return true;
+    private void fetchStarWarsData() {
+        executorService.execute(() -> {
+            try {
+                String response = getResponseFromHttpUrl();
+                JSONObject jsonObject = new JSONObject(response);
+                JSONArray results = jsonObject.getJSONArray("results");
+                for (int i = 0; i < results.length(); i++) {
+                    JSONObject character = results.getJSONObject(i);
+                    names.add(character.getString("name"));
+                    details.add(character.toString());
+                }
+                runOnUiThread(() -> listView.setAdapter(new CustomAdapter(MainActivity.this, names)));
+            } catch (Exception e) {
+                Log.e(TAG, "Error fetching Star Wars data", e);
+            }
         });
+    }
+
+    private String getResponseFromHttpUrl() throws Exception {
+        StringBuilder result = new StringBuilder();
+        URL url = new URL(MainActivity.STAR_WARS_API_URL);
+        HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                result.append(line);
+            }
+        } finally {
+            urlConnection.disconnect();
+        }
+        return result.toString();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        executorService.shutdown();
     }
 }
