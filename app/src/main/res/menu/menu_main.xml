@@ -1,0 +1,23 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <!-- First menu item -->
+    <item
+        android:id="@+id/item1"
+        android:title="@string/menu_item1_title"
+        app:showAsAction="ifRoom"
+        android:icon="@drawable/icon1" />
+
+    <!-- Second menu item -->
+    <item
+        android:id="@+id/item2"
+        android:title="@string/menu_item2_title"
+        app:showAsAction="ifRoom"
+        android:icon="@drawable/icon2" />
+
+    <!-- Overflow menu item -->
+    <item
+        android:id="@+id/item3"
+        android:title="@string/menu_item3_title"
+        app:showAsAction="never" />
+</menu>
